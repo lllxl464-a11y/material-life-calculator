@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>材料寿命时间计算器</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #f3f5f7;
+      color: #1f2a37;
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+    }
+    main {
+      width: min(1180px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 18px 0;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(24px, 4vw, 32px);
+      letter-spacing: 0;
+    }
+    .subtitle {
+      margin: 0 0 14px;
+      color: #5f6f83;
+      line-height: 1.6;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    .panel {
+      background: #ffffff;
+      border: 1px solid #d7dee8;
+      border-radius: 8px;
+      padding: 18px;
+      box-shadow: 0 14px 36px rgba(31, 42, 55, 0.08);
+    }
+    .section-title {
+      margin: 0 0 14px;
+      font-size: 18px;
+    }
+    .calculator-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(330px, 0.8fr);
+      gap: 18px;
+      align-items: start;
+    }
+    .input-area {
+      display: grid;
+      gap: 12px;
+    }
+    .field { margin-bottom: 0; }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: #405064;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    input,
+    button {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid #c8d2df;
+      border-radius: 6px;
+      font: inherit;
+    }
+    input {
+      padding: 8px 10px;
+      background: #ffffff;
+      color: #1f2a37;
+    }
+    .time-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .unit-field {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      overflow: hidden;
+      border: 1px solid #c8d2df;
+      border-radius: 6px;
+      background: #ffffff;
+    }
+    .unit-field input {
+      min-width: 0;
+      border: 0;
+      border-radius: 0;
+    }
+    .unit {
+      padding: 0 10px;
+      color: #526579;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .life-input { max-width: 260px; }
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 2px;
+    }
+    button {
+      background: #ffffff;
+      color: #1f2a37;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    button:hover { background: #eef4fb; }
+    .primary {
+      background: #1769aa;
+      border-color: #1769aa;
+      color: #ffffff;
+    }
+    .primary:hover { background: #12568c; }
+    .danger {
+      color: #a53224;
+      border-color: #e7b2aa;
+      background: #fff4f2;
+    }
+    .results {
+      display: grid;
+      gap: 12px;
+      margin-top: 0;
+    }
+    .result {
+      padding: 14px;
+      border: 1px solid #b9d1e9;
+      border-radius: 8px;
+      background: #eef6ff;
+    }
+    .result.final {
+      border-color: #b8d8c5;
+      background: #effaf3;
+    }
+    .result-label {
+      margin: 0 0 6px;
+      color: #4b5e73;
+      font-size: 14px;
+    }
+    .result-value {
+      margin: 0;
+      color: #0f4c81;
+      font-size: clamp(30px, 5vw, 44px);
+      font-weight: 800;
+      line-height: 1.1;
+      word-break: break-all;
+    }
+    .result.final .result-value { color: #1d6b3b; }
+    .result-detail,
+    .error {
+      margin: 8px 0 0;
+      line-height: 1.5;
+    }
+    .result-detail { color: #405064; }
+    .error {
+      color: #a53224;
+      font-weight: 700;
+    }
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 620px;
+    }
+    th,
+    td {
+      padding: 10px;
+      border-bottom: 1px solid #e4e9f0;
+      text-align: left;
+      white-space: nowrap;
+    }
+    th {
+      color: #405064;
+      font-size: 13px;
+      background: #f8fafc;
+    }
+    .table-actions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .table-actions button {
+      width: auto;
+      padding: 0 14px;
+    }
+    .empty {
+      padding: 28px 10px;
+      color: #68788d;
+      text-align: center;
+    }
+    @media (max-width: 820px) {
+      .calculator-grid { grid-template-columns: 1fr; }
+      .time-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .actions { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      main {
+        width: min(100vw - 16px, 520px);
+        padding: 10px 0;
+      }
+      .panel { padding: 12px; }
+      .time-grid { grid-template-columns: 1fr; }
+      .result-value { font-size: 34px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>材料寿命时间计算器</h1>
+    <p class="subtitle">输入开始和结束的日期、24小时制时间，再输入材料剩余寿命，自动算出已用时间和最终剩余寿命。</p>
+
+    <div class="layout">
+      <section class="panel" aria-label="时间计算">
+        <h2 class="section-title">单次计算</h2>
+
+        <div class="calculator-grid">
+          <div class="input-area">
+            <div class="field">
+              <label>开始时间</label>
+              <div class="time-grid">
+                <div class="unit-field">
+                  <input id="startDay" type="number" min="1" max="31" step="1" value="2" aria-label="开始日期">
+                  <span class="unit">号</span>
+                </div>
+                <div class="unit-field">
+                  <input id="startHour" type="number" min="0" max="23" step="1" value="22" aria-label="开始小时">
+                  <span class="unit">时</span>
+                </div>
+                <div class="unit-field">
+                  <input id="startMinute" type="number" min="0" max="59" step="1" value="12" aria-label="开始分钟">
+                  <span class="unit">分</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>结束时间</label>
+              <div class="time-grid">
+                <div class="unit-field">
+                  <input id="endDay" type="number" min="1" max="31" step="1" value="4" aria-label="结束日期">
+                  <span class="unit">号</span>
+                </div>
+                <div class="unit-field">
+                  <input id="endHour" type="number" min="0" max="23" step="1" value="8" aria-label="结束小时">
+                  <span class="unit">时</span>
+                </div>
+                <div class="unit-field">
+                  <input id="endMinute" type="number" min="0" max="59" step="1" value="34" aria-label="结束分钟">
+                  <span class="unit">分</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="remainingLife">材料剩余寿命</label>
+              <div class="unit-field life-input">
+                <input id="remainingLife" type="number" min="0" step="0.01" value="100" aria-label="材料剩余寿命">
+                <span class="unit">小时</span>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="primary" id="calculateBtn" type="button">计算</button>
+              <button id="addBtn" type="button">加入记录</button>
+              <button id="resetBtn" type="button">恢复示例</button>
+              <button class="danger" id="clearBtn" type="button">清空记录</button>
+            </div>
+          </div>
+
+          <div class="results" aria-live="polite">
+            <div class="result">
+              <p class="result-label">已用时间</p>
+              <p class="result-value" id="resultValue">34.37</p>
+              <p class="result-detail" id="resultDetail">共 34 小时 22 分钟，约 1.43 天</p>
+            </div>
+            <div class="result final">
+              <p class="result-label">最终剩余寿命</p>
+              <p class="result-value" id="finalValue">65.63</p>
+              <p class="result-detail" id="finalDetail">100.00 - 34.37 = 65.63 小时</p>
+            </div>
+            <p class="error" id="errorText" hidden></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="计算记录">
+        <h2 class="section-title">计算记录</h2>
+        <div class="table-actions">
+          <button id="copyBtn" type="button">复制记录</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>开始</th>
+                <th>结束</th>
+                <th>原剩余寿命</th>
+                <th>已用时间</th>
+                <th>最终剩余寿命</th>
+                <th>详细时间</th>
+              </tr>
+            </thead>
+            <tbody id="recordsBody">
+              <tr>
+                <td class="empty" colspan="6">还没有记录，计算后点击“加入记录”。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const fields = {
+      startDay: document.querySelector("#startDay"),
+      startHour: document.querySelector("#startHour"),
+      startMinute: document.querySelector("#startMinute"),
+      endDay: document.querySelector("#endDay"),
+      endHour: document.querySelector("#endHour"),
+      endMinute: document.querySelector("#endMinute"),
+      remainingLife: document.querySelector("#remainingLife")
+    };
+    const resultValue = document.querySelector("#resultValue");
+    const resultDetail = document.querySelector("#resultDetail");
+    const finalValue = document.querySelector("#finalValue");
+    const finalDetail = document.querySelector("#finalDetail");
+    const errorText = document.querySelector("#errorText");
+    const recordsBody = document.querySelector("#recordsBody");
+    const records = [];
+
+    function readInteger(input, name, min, max) {
+      const value = Number(input.value);
+      if (!Number.isInteger(value) || value < min || value > max) {
+        throw new Error(`${name}请输入 ${min} 到 ${max} 之间的整数。`);
+      }
+      return value;
+    }
+
+    function readNumber(input, name, min) {
+      const value = Number(input.value);
+      if (!Number.isFinite(value) || value < min) {
+        throw new Error(`${name}请输入不小于 ${min} 的数字。`);
+      }
+      return value;
+    }
+
+    function readPoint(prefix) {
+      const day = readInteger(fields[`${prefix}Day`], "日期", 1, 31);
+      const hour = readInteger(fields[`${prefix}Hour`], "小时", 0, 23);
+      const minute = readInteger(fields[`${prefix}Minute`], "分钟", 0, 59);
+      const totalMinutes = day * 24 * 60 + hour * 60 + minute;
+      return { day, hour, minute, totalMinutes };
+    }
+
+    function formatPoint(point) {
+      return `${point.day}号 ${String(point.hour).padStart(2, "0")}:${String(point.minute).padStart(2, "0")}`;
+    }
+
+    function calculateDuration() {
+      const start = readPoint("start");
+      const end = readPoint("end");
+      const diffMinutes = end.totalMinutes - start.totalMinutes;
+      if (diffMinutes < 0) {
+        throw new Error("结束时间必须晚于开始时间。");
+      }
+      const precision = 2;
+      const hours = diffMinutes / 60;
+      const remainingLife = readNumber(fields.remainingLife, "材料剩余寿命", 0);
+      const finalLife = remainingLife - hours;
+      const days = hours / 24;
+      const wholeHours = Math.floor(diffMinutes / 60);
+      const minutes = diffMinutes % 60;
+      return {
+        start,
+        end,
+        remainingLifeText: remainingLife.toFixed(precision),
+        hoursText: hours.toFixed(precision),
+        finalLifeText: finalLife.toFixed(precision),
+        detailText: `共 ${wholeHours} 小时 ${minutes} 分钟，约 ${days.toFixed(precision)} 天`,
+        finalDetailText: `${remainingLife.toFixed(precision)} - ${hours.toFixed(precision)} = ${finalLife.toFixed(precision)} 小时`
+      };
+    }
+
+    function showError(message) {
+      errorText.textContent = message;
+      errorText.hidden = false;
+      resultValue.textContent = "--";
+      resultDetail.textContent = "请检查输入后重新计算。";
+      finalValue.textContent = "--";
+      finalDetail.textContent = "请检查输入后重新计算。";
+    }
+
+    function showResult(result) {
+      errorText.hidden = true;
+      resultValue.textContent = result.hoursText;
+      resultDetail.textContent = result.detailText;
+      finalValue.textContent = result.finalLifeText;
+      finalDetail.textContent = result.finalDetailText;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function calculateAndRender() {
+      try {
+        const result = calculateDuration();
+        showResult(result);
+        return result;
+      } catch (error) {
+        showError(error.message);
+        return null;
+      }
+    }
+
+    function renderRecords() {
+      if (records.length === 0) {
+        recordsBody.innerHTML = '<tr><td class="empty" colspan="6">还没有记录，计算后点击“加入记录”。</td></tr>';
+        return;
+      }
+      recordsBody.innerHTML = records.map((record) => `
+        <tr>
+          <td>${escapeHtml(record.start)}</td>
+          <td>${escapeHtml(record.end)}</td>
+          <td>${escapeHtml(record.remainingLife)}</td>
+          <td>${escapeHtml(record.hours)}</td>
+          <td>${escapeHtml(record.finalLife)}</td>
+          <td>${escapeHtml(record.detail)}</td>
+        </tr>
+      `).join("");
+    }
+
+    function resetExample() {
+      fields.startDay.value = "2";
+      fields.startHour.value = "22";
+      fields.startMinute.value = "12";
+      fields.endDay.value = "4";
+      fields.endHour.value = "8";
+      fields.endMinute.value = "34";
+      fields.remainingLife.value = "100";
+      calculateAndRender();
+    }
+
+    document.querySelector("#calculateBtn").addEventListener("click", calculateAndRender);
+    document.querySelector("#addBtn").addEventListener("click", () => {
+      const result = calculateAndRender();
+      if (!result) return;
+      records.push({
+        start: formatPoint(result.start),
+        end: formatPoint(result.end),
+        remainingLife: result.remainingLifeText,
+        hours: result.hoursText,
+        finalLife: result.finalLifeText,
+        detail: result.detailText
+      });
+      renderRecords();
+    });
+    document.querySelector("#resetBtn").addEventListener("click", resetExample);
+    document.querySelector("#clearBtn").addEventListener("click", () => {
+      records.length = 0;
+      renderRecords();
+    });
+    document.querySelector("#copyBtn").addEventListener("click", async () => {
+      if (records.length === 0) return;
+      const rows = [
+        ["开始", "结束", "原剩余寿命", "已用时间", "最终剩余寿命", "详细时间"],
+        ...records.map((record) => [record.start, record.end, record.remainingLife, record.hours, record.finalLife, record.detail])
+      ];
+      await navigator.clipboard.writeText(rows.map((row) => row.join("\t")).join("\n"));
+    });
+    Object.values(fields).forEach((field) => {
+      field.addEventListener("input", calculateAndRender);
+      field.addEventListener("change", calculateAndRender);
+    });
+    calculateAndRender();
+  </script>
+</body>
+</html>
