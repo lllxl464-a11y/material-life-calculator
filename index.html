@@ -3,8 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1769aa">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="寿命计算器">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>材料寿命时间计算器</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231769aa'/%3E%3Cpath d='M18 16h28v32H18z' fill='%23fff' opacity='.95'/%3E%3Cpath d='M22 22h20M22 30h20M22 38h12' stroke='%231769aa' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M43 41l4 4 8-10' fill='none' stroke='%2322c55e' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
   <style>
     * { box-sizing: border-box; }
     body {
@@ -515,6 +522,11 @@
       field.addEventListener("input", calculateAndRender);
       field.addEventListener("change", calculateAndRender);
     });
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js");
+      });
+    }
     calculateAndRender();
   </script>
 </body>
