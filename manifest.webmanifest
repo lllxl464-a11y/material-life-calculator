@@ -4,7 +4,7 @@
   "description": "计算材料寿命已用时间和最终剩余寿命的离线工具。",
   "start_url": "./",
   "scope": "./",
-  "display": "standalone",
+  "display": "browser",
   "background_color": "#f3f5f7",
   "theme_color": "#1769aa",
   "icons": [
